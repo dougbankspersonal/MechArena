@@ -1,0 +1,48 @@
+.card_array > .page_of_items_contents > .card.mech-arena-card {
+  box-shadow: 4px 6px 8px rgba(0, 0, 0, 0.5);
+}
+
+.dark_shadowed {
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+.card.mech-arena-card {
+  font-family: "Orbitron", serif;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+  font-weight: bold;
+}
+
+.card.front.mech-arena-card {
+  padding-top: 27px;
+  padding-bottom: 27px;
+  padding-left: 14px;
+  padding-right: 14px;
+  position: relative;
+}
+
+.card.back.mech-arena-card {
+  position: relative;
+}
+.card.back.mech-arena-card .pseudo_image {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  transform: translate(50%, 50%);
+  z-index: 0;
+}
+.card.back.mech-arena-card .back-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 2;
+  position: relative;
+}
+.card.back.mech-arena-card .back-wrapper .back-text {
+  position: absolute;
+  font-size: 36px;
+}
+
+/*# sourceMappingURL=mech_arena_cards.css.map */

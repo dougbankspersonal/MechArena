@@ -1,14 +1,14 @@
 <html>
   <head>
-    <link rel="stylesheet" href="../css/santa_images.css" />
-    <link rel="stylesheet" href="../css/toy_component.css" />
+    <link rel="stylesheet" href="../css/mech_arena_images.css" />
+    <link rel="stylesheet" href="../css/mech_arena_cards.css" />
     <link rel="stylesheet" href="../SharedWebBoardGame/css/card.css" />
     <link rel="stylesheet" href="../SharedWebBoardGame/css/main.css" />
     <link rel="stylesheet" href="../SharedWebBoardGame/css/image.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
@@ -42,52 +42,54 @@
 
     <script>
       require([
-        "javascript/toyComponentCards",
         "sharedJavascript/cards",
         "sharedJavascript/debugLog",
         "sharedJavascript/genericUtils",
+        "sharedJavascript/htmlUtils",
         "sharedJavascript/systemConfigs",
+        "javascript/gameInfo",
+        "javascript/mechArenaCards",
+        "javascript/mechArenaCardData",
       ], function (
-        toyComponentCards,
         cards,
         debugLog,
         genericUtils,
-        systemConfigs
+        htmlUtils,
+        systemConfigs,
+        gameInfo,
+        mechArenaCards,
+        mechArenaCardData
       ) {
-        var queryString = window.location.search;
-        // Create a URLSearchParams object
-        var params = new URLSearchParams(queryString);
-        // Get individual parameters
-        var useTTS = genericUtils.stringToBoolean(params.get("useTTS"));
-        var skipCardBacks = genericUtils.stringToBoolean(
-          params.get("skipCardBacks")
-        );
-        var singleCardInstance = genericUtils.stringToBoolean(
-          params.get("singleCardInstance")
-        );
+        var queryParams = genericUtils.getCommonQueryParams();
 
-        var scConfigs;
-        if (useTTS) {
-          // See systemConfigs.js for more details on configs.
-          // This is the TTS config.
-          scConfigs = systemConfigs.addTTSCardSystemConfigs();
+        var sc;
+        if (queryParams.isTTS) {
+          sc = systemConfigs.addTTSCardSystemConfigs();
         } else {
-          scConfigs = systemConfigs.addCardSizingSystemConfigs();
-          scConfigs.skipCardBacks = skipCardBacks;
+          sc = systemConfigs.addCardSizingSystemConfigs();
+          sc.skipCardBacks = queryParams.skipCardBacks;
         }
-        if (singleCardInstance) {
-          scConfigs.singleCardInstance = singleCardInstance;
-        }
-        systemConfigs.setSystemConfigs(scConfigs);
 
-        cards.addCards(
-          toyComponentCards.getNumToyComponentCards(),
-          toyComponentCards.addCardFrontAtIndex,
-          {
-            callback: toyComponentCards.addToyComponentCardBack,
-            hexColorString: "#228b22",
-          }
-        );
+        sc.cardBackFontSize = 36;
+        systemConfigs.setSystemConfigs(sc);
+
+        console.log("Doug: cardsPerRow = " + sc.cardsPerRow);
+
+        var numCards = mechArenaCardData.getNumCards();
+
+        function addCardBack(parent, title, hexColorString, index) {
+          var deckConfig =
+            mechArenaCardData.getDeckConfigFromGlobalCardIndex(index);
+          return mechArenaCards.addBackForDeck(parent, deckConfig);
+        }
+
+        var backConfig = {
+          hexColorString: "#fff", // Not used.
+          title: "Also not used",
+          callback: addCardBack,
+        };
+
+        cards.addCards(numCards, mechArenaCards.addCardFront, backConfig);
       });
     </script>
   </body>
