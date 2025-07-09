@@ -1,0 +1,216 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="../../css/santa_images.css" />
+    <link rel="stylesheet" href="../../css/toy_component.css" />
+    <link rel="stylesheet" href="../../SharedWebBoardGame/css/card.css" />
+    <link rel="stylesheet" href="../../SharedWebBoardGame/css/main.css" />
+    <link rel="stylesheet" href="../../SharedWebBoardGame/css/image.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+    <style type="text/css"></style>
+  </head>
+
+  <body id="body">
+    <!-- configure Dojo -->
+    <script>
+      // Instead of using data-dojo-config, we're creating a dojoConfig
+      // object *before* we load dojo.js; they're functionally identical,
+      // it's just easier to read this approach with a larger configuration.
+      var dojoConfig = {
+        baseUrl: "../..",
+        async: true,
+        // This code registers the correct location of the "demo"
+        // package so we can load Dojo from the CDN whilst still
+        // being able to load local modules
+        packages: [
+          { name: "dojo", location: "../../bower_components/dojo" },
+          { name: "javascript", location: "javascript" },
+          {
+            name: "sharedJavascript",
+            location: "SharedWebBoardgame/javascript",
+          },
+        ],
+      };
+    </script>
+    <!-- load Dojo -->
+    <script src="../../../../bower_components/dojo/dojo.js"></script>
+
+    <script>
+      require([
+        "dojo/dom",
+        "dojo/dom-style",
+        "sharedJavascript/cards",
+        "sharedJavascript/debugLog",
+        "sharedJavascript/genericMeasurements",
+        "sharedJavascript/htmlUtils",
+        "sharedJavascript/systemConfigs",
+        "javascript/toyComponentCards",
+      ], function (
+        dom,
+        domStyle,
+        cards,
+        debugLog,
+        genericMeasurements,
+        htmlUtils,
+        systemConfigs,
+        toyComponentCards
+      ) {
+        systemConfigs.setSystemConfigs({
+          pageless: true,
+        });
+
+        var unknownCardInstanceArray = [
+          {
+            title: "Doll",
+          },
+          {
+            title: "Kite",
+          },
+          {
+            title: "Robot",
+          },
+          {
+            title: "Radio",
+          },
+          {
+            title: "Reindeer Poo",
+          },
+          {
+            title: "Wrapping Paper",
+          },
+          {
+            title: "Elf Magic",
+          },
+          {
+            title: "Broom",
+            // sfacedown: true,
+          },
+        ];
+
+        var setupExampleCardInstanceArray = [
+          {
+            title: "Robot",
+          },
+          {
+            title: "Robot",
+          },
+          {
+            title: "Radio",
+          },
+          {
+            title: "Doll",
+          },
+          {
+            title: "Doll",
+          },
+          {
+            title: "Kite",
+          },
+          {
+            title: "Doll",
+          },
+          {
+            title: "Elf Magic",
+          },
+          {
+            title: "Kite",
+          },
+          {
+            title: "Radio",
+          },
+          {
+            title: "Doll",
+          },
+          {
+            title: "Doll",
+          },
+          {
+            title: "Kite",
+          },
+          {
+            title: "Robot",
+          },
+          {
+            title: "Kite",
+          },
+          {
+            title: "Reindeer Poo",
+          },
+          {
+            title: "Kite",
+            facedown: true,
+          },
+        ];
+
+        function addBack(parent, title, color, opt_configs) {
+          return toyComponentCards.addBack(parent, title, color, opt_configs);
+        }
+
+        var totalTilt = 6;
+        var minTilt = -totalTilt / 2;
+        var maxTilt = totalTilt / 2;
+
+        var cardSpacing = genericMeasurements.standardCardWidthPx * 0.5;
+        function modifyCardLayout(card, i) {
+          debugLog.debugLog("Cards", "Doug: modifyCardLayout: i = " + i);
+          var left = i * cardSpacing;
+          var xOffset = i * cardSpacing;
+          domStyle.set(card, {
+            zIndex: `${100 - i}`,
+            "margin-right": "-50px",
+          });
+          htmlUtils.addQuasiRandomTilt(card, minTilt, maxTilt);
+        }
+
+        var bodyNode = dom.byId("body");
+        var pageNode = htmlUtils.addPageOfItems(bodyNode, ["card_array"]);
+
+        domStyle.set(pageNode, {
+          "margin-top": "10px",
+          "margin-bottom": "10px",
+          "margin-right": "60px",
+          "margin-left": "10px",
+        });
+
+        var cardInstanceArray = setupExampleCardInstanceArray;
+
+        debugLog.debugLog(
+          "Cards",
+          "Doug: cardInstanceArray.length = ",
+          cardInstanceArray.length
+        );
+
+        for (var i = 0; i < cardInstanceArray.length; i++) {
+          var cardInstance = cardInstanceArray[i];
+          var card;
+          if (cardInstance.facedown) {
+            card = toyComponentCards.addToyComponentCardBack(
+              pageNode,
+              null,
+              "#228b22"
+            );
+          } else {
+            var toyComponentCardConfig =
+              toyComponentCards.getToyComponentCardConfigByTitle(
+                cardInstance.title
+              );
+            console.assert(toyComponentCardConfig);
+            toyComponentCardConfig.instanceCount = 1;
+            card = toyComponentCards.addToyComponentCardFront(
+              pageNode,
+              toyComponentCardConfig,
+              i
+            );
+          }
+          // Twiddle card layout.
+          modifyCardLayout(card, i);
+        }
+      });
+    </script>
+  </body>
+</html>
