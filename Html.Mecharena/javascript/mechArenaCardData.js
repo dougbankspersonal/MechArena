@@ -7,46 +7,165 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   //
   //-----------------------------------
 
+  const CardType_Movement = "movement";
+  const CardType_Attack = "attack";
+  const CardType_System = "system";
+
+  var cardTypes = {
+    Movement: CardType_Movement,
+    Attack: CardType_Attack,
+    System: CardType_System,
+  };
+
+  var DiscardEffectType_Reposition = "reposition";
+  var DiscardEffectType_Ammo = "ammo";
+  var DiscardEffectType_Energy = "energy";
+  var DiscardEffectType_BattleRetreat = "battle-retreat";
+
+  var discardEffectTypes = {
+    Reposition: DiscardEffectType_Reposition,
+    Ammo: DiscardEffectType_Ammo,
+    Energy: DiscardEffectType_Energy,
+    BattleRetreat: DiscardEffectType_BattleRetreat,
+  };
+
   var nextDeckId = 0;
-
-  const sampleDeckConfigTeam1 = {
+  const attackDroneDeckConfig = {
     deckId: nextDeckId++,
-    deckName: "Saber",
+    deckName: "Attack Drone",
     artConfig: {
-      backImage: "mech1",
+      mechImage: "attack-drone",
     },
 
     cardConfigs: [
       {
-        title: "Move",
+        title: "Dive Attack",
+        type: cardTypes.Movement,
+        initiative: 1,
+        discardEffect: {
+          type: discardEffectTypes.Reposition,
+        },
       },
       {
-        title: "Maneuver",
+        title: "Target Lock",
+        type: cardTypes.System,
+        initiative: 1,
+        discardEffect: {
+          type: discardEffectTypes.Reposition,
+        },
+      },
+      {
+        title: "Pulse Laser",
+        type: cardTypes.Attack,
+        initiative: 2,
+        discardEffect: {
+          type: discardEffectTypes.Reposition,
+        },
+      },
+      {
+        title: "Rocket Pod",
+        type: cardTypes.Attack,
+        initiative: 2,
+      },
+      {
+        title: "Flanking Turn",
+        type: cardTypes.Movement,
+        initiative: 3,
+        discardEffect: {
+          type: discardEffectTypes.Reposition,
+        },
+      },
+      {
+        title: "Reposition",
+        type: cardTypes.Movement,
+        initiative: 4,
+      },
+      {
+        title: "Disengage",
+        type: cardTypes.Movement,
+        initiative: 4,
       },
     ],
   };
 
-  const sampleDeckConfigTeam2 = {
+  const railgunTankDeckConfig = {
     deckId: nextDeckId++,
-    deckName: "Claw",
+    deckName: "Railgun Tank",
     artConfig: {
-      backImage: "mech2",
+      mechImage: "railgun-tank",
     },
 
     cardConfigs: [
       {
-        title: "Move",
+        title: "Target Lock",
+        type: cardTypes.System,
+        initiative: 1,
+        discardEffect: {
+          type: discardEffectTypes.Ammo,
+          count: 1,
+        },
       },
       {
-        title: "Maneuver",
+        title: "Recharge",
+        count: 2,
+        type: cardTypes.System,
+        initiative: 2,
+        discardEffect: {
+          type: discardEffectTypes.Energy,
+          count: 2,
+        },
       },
       {
-        title: "Stun",
+        title: "Reload",
+        type: cardTypes.System,
+        initiative: 2,
+        discardEffect: {
+          type: discardEffectTypes.Energy,
+          count: 1,
+        },
+      },
+      {
+        title: "Rapid Turn",
+        type: cardTypes.Movement,
+        initiative: 3,
+        discardEffect: {
+          type: discardEffectTypes.Energy,
+          count: 1,
+        },
+      },
+      {
+        title: "Reposition",
+        count: 2,
+        type: cardTypes.Movement,
+        initiative: 5,
+        discardEffect: {
+          type: discardEffectTypes.Energy,
+          count: 1,
+        },
+      },
+      {
+        title: "Retreat to Long",
+        type: cardTypes.Movement,
+        initiative: 6,
+        discardEffect: {
+          type: discardEffectTypes.BattleRetreat,
+          count: 1,
+        },
+      },
+      {
+        title: "Fire Railgun",
+        count: 2,
+        type: cardTypes.Attack,
+        initiative: 8,
+        discardEffect: {
+          type: discardEffectTypes.Reposition,
+          count: 1,
+        },
       },
     ],
   };
 
-  const deckConfigs = [sampleDeckConfigTeam1, sampleDeckConfigTeam2];
+  const deckConfigs = [attackDroneDeckConfig, railgunTankDeckConfig];
 
   //-----------------------------------
   //
@@ -138,13 +257,14 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   // This returned object becomes the defined value of this module
   return {
     deckConfigs: deckConfigs,
+    cardTypes: cardTypes,
+    discardEffectTypes: discardEffectTypes,
 
     getDeckConfigFromGlobalCardIndex: getDeckConfigFromGlobalCardIndex,
     getCardConfigFromGlobalCardIndex: getCardConfigFromGlobalCardIndex,
     getCardIndexInDeckFromGlobalCardIndex:
       getCardIndexInDeckFromGlobalCardIndex,
     getDeckIndexFromGlobalCardIndex: getDeckIndexFromGlobalCardIndex,
-
     getNumCards: getNumCards,
   };
 });

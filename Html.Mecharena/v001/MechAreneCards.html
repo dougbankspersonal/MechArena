@@ -60,15 +60,8 @@
         mechArenaCards,
         mechArenaCardData
       ) {
-        var queryParams = genericUtils.getCommonQueryParams();
-
-        var sc;
-        if (queryParams.isTTS) {
-          sc = systemConfigs.addTTSCardSystemConfigs();
-        } else {
-          sc = systemConfigs.addCardSizingSystemConfigs();
-          sc.skipCardBacks = queryParams.skipCardBacks;
-        }
+        var sc = systemConfigs.getCardSystemConfigs();
+        systemConfigs.setSystemConfigs(sc);
 
         sc.cardBackFontSize = 36;
         systemConfigs.setSystemConfigs(sc);
