@@ -15,22 +15,6 @@
   font-weight: bold;
 }
 
-.card.front.mech-arena-card.system {
-  background-color: #bb9;
-  border: 4px solid #662;
-}
-
-.card.front.mech-arena-card.attack {
-  background-color: #b99;
-  border: 4px solid #622;
-}
-
-.card.front.mech-arena-card.movement {
-  background-color: #9b9;
-  border: 4px solid #262;
-}
-
-
 .card.front.mech-arena-card {
   padding-top: 27px;
   padding-bottom: 27px;
@@ -38,6 +22,7 @@
   padding-right: 14px;
   position: relative;
 
+  border: 4px solid #000;
 
   .initiative {
     position: absolute;
@@ -56,12 +41,30 @@
     }
   }
 
-  .deck-marker {
+  .body-part-wrapper {
     position: absolute;
-    top: -5px;
-    right: 0px;
-    width: 50px;
-    height: 50px;
+    top: -2px;
+    right: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+
+    .body-part {
+      width: 35px;
+      height: 35px;
+      position: relative;
+
+      .side {
+        display: flex;
+        justify-content: right;
+        align-items: flex-end;
+        font-size: 12px;
+        width: 100%;
+        height: 100%;
+        text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff;
+      }
+    }
   }
 
   .front-wrapper {
@@ -77,22 +80,35 @@
       text-align: center;
       font-weight: bold;
     }
+
+    .details-section {
+      width: 90%;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      border-radius: 5px;
+      border: 2px solid #000;
+      gap: 4px;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+      margin-top: 15px;
+
+      .pseudo_image {
+        width: 50px;
+        height: 50px;
+      }
+
+      .join {
+        font-size: 40px;
+        font-weight: bold;
+      }
+    }
+
+    .movement {
+      border-color: #292;
+    }
   }
 
-  .front-wrapper.system {
-    background-color: #ff9;
-    border: 4px solid #992;
-  }
-
-  .front-wrapper.attack {
-    background-color: #f99;
-    border: 4px solid #922;
-  }
-
-  .front-wrapper.system {
-    background-color: #9f9;
-    border: 4px solid #292;
-  }
 
   .discard-effect-wrapper {
     position: absolute;
@@ -109,6 +125,19 @@
     }
   }
 }
+
+.card.front.mech-arena-card.system {
+  border-color: #dd1;
+}
+
+.card.front.mech-arena-card.attack {
+  border-color: #922;
+}
+
+.card.front.mech-arena-card.movement {
+  border-color: #292;
+}
+
 
 .card.back.mech-arena-card {
   position: relative;
