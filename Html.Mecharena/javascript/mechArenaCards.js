@@ -102,6 +102,20 @@ define([
     return bodyPartWrapperNode;
   }
 
+  function maybeAddCountNode(parentNode, opt_count) {
+    console.log("maybeAddCountNode", opt_count);
+    if (opt_count === undefined || opt_count === null || opt_count <= 0) {
+      return null;
+    }
+    var countNode = htmlUtils.addDiv(
+      parentNode,
+      ["count"],
+      "count",
+      `x${opt_count.toString()}`
+    );
+    return countNode;
+  }
+
   function addTitleNode(parentNode, cardConfig) {
     var titleNode = htmlUtils.addDiv(
       parentNode,
@@ -111,6 +125,39 @@ define([
     );
 
     return titleNode;
+  }
+
+  function maybeAddCostNode(parentNode, cardConfig) {
+    console.log("maybeAddCostNode", cardConfig);
+    var cost = cardConfig.cost || [];
+
+    if (cost.length === 0) {
+      console.log("maybeAddCostNode early return, no cost");
+      return null;
+    }
+
+    console.log("maybeAddCostNode adding child");
+    var costWrapperNode = htmlUtils.addDiv(
+      parentNode,
+      ["cost_wrapper"],
+      "cost_wrapper"
+    );
+
+    for (var i = 0; i < cost.length; i++) {
+      var costConfig = cost[i];
+      var costImageNode = htmlUtils.addImage(
+        costWrapperNode,
+        ["cost", costConfig.type],
+        "cost-" + costConfig.type
+      );
+      maybeAddCountNode(costImageNode, costConfig.count);
+
+      maybeAddJoinNode(
+        costWrapperNode,
+        cardConfig.costJoinType,
+        i < cost.length - 1
+      );
+    }
   }
 
   function addMovementPropertyNode(parentNode, cardConfig) {
@@ -166,14 +213,7 @@ define([
       "discard-effect"
     );
 
-    if (discardEffectConfig.count > 1) {
-      var countNode = htmlUtils.addDiv(
-        discardEffectWrapperNode,
-        ["count"],
-        "count",
-        `x${discardEffectConfig.count.toString()}`
-      );
-    }
+    maybeAddCountNode(discardEffectImageNode, discardEffectConfig.count);
 
     return discardEffectWrapperNode;
   }
@@ -181,10 +221,12 @@ define([
   function addCardFront(parentNode, index) {
     var cardConfig = mechArenaCardData.getCardConfigFromGlobalCardIndex(index);
     var deckConfig = mechArenaCardData.getDeckConfigFromGlobalCardIndex(index);
+    console.log("addCardFront", index, cardConfig, deckConfig);
     var cardIndex =
       mechArenaCardData.getCardIndexInDeckFromGlobalCardIndex(index);
+    console.log("cardIndex", cardIndex);
     var deckIndex = mechArenaCardData.getDeckIndexFromGlobalCardIndex(index);
-
+    console.log("deckIndex", deckIndex);
     var cardFrontNode = cards.addCardFront(
       parentNode,
       ["mech-arena-card", cardConfig.type],
@@ -205,6 +247,7 @@ define([
     );
 
     addTitleNode(frontWrapperNode, cardConfig);
+    maybeAddCostNode(frontWrapperNode, cardConfig);
 
     addMovementPropertyNode(frontWrapperNode, cardConfig);
 

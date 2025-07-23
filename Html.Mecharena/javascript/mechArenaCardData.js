@@ -16,6 +16,9 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   const DiscardEffectType_Energy = "energy";
   const DiscardEffectType_BattleRetreat = "battle-retreat";
 
+  const CostType_Energy = "energy";
+  const CostType_Ammo = "ammo";
+
   const BodyPartType_Rotor = "rotor";
   const BodyPartType_Head = "head";
   const BodyPartType_Weapon = "weapon";
@@ -77,6 +80,11 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
     BattleRetreat: MovementType_BattleRetreat,
   };
 
+  const costTypes = {
+    Energy: CostType_Energy,
+    Ammo: CostType_Ammo,
+  };
+
   var nextDeckId = 0;
   const attackDroneDeckConfig = {
     deckId: nextDeckId++,
@@ -122,12 +130,14 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           type: discardEffectTypes.Reposition,
         },
         bodyParts: [{ type: bodyPartTypes.Weapon }],
+        cost: [{ type: costTypes.Energy, count: 1 }],
       },
       {
         title: "Rocket Pod",
         type: cardTypes.Attack,
         initiative: 2,
         bodyParts: [{ type: bodyPartTypes.Weapon }],
+        cost: [{ type: costTypes.Energy, count: 1 }],
       },
       {
         title: "Flanking Turn",
@@ -247,7 +257,6 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         initiative: 6,
         discardEffect: {
           type: discardEffectTypes.BattleRetreat,
-          count: 1,
         },
         bodyParts: [{ type: bodyPartTypes.Track, side: bodyPartSides.Left }],
         movements: [{ type: movementTypes.Long }],
@@ -259,10 +268,13 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         initiative: 8,
         discardEffect: {
           type: discardEffectTypes.Reposition,
-          count: 1,
         },
         bodyParts: [{ type: bodyPartTypes.Turret }],
         bodyPartNumber: 1,
+        cost: [
+          { type: costTypes.Energy, count: 2 },
+          { type: costTypes.Ammo, count: 1 },
+        ],
       },
     ],
   };
@@ -274,85 +286,76 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   // Functions
   //
   //-----------------------------------
-  function getDeckConfigFromGlobalCardIndex(index) {
-    debugLog.debugLog(
-      "Cards",
-      "getDeckConfigFromGlobalCardIndex: index = " + index
-    );
-    debugLog.debugLog(
-      "Cards",
-      "getDeckConfigFromGlobalCardIndex: deckConfigs.length = " +
-        deckConfigs.length
-    );
+  function getDeckConfigFromGlobalCardIndex(globalCardIndex) {
     for (var i = 0; i < deckConfigs.length; i++) {
       var deckConfig = deckConfigs[i];
-      if (index < deckConfig.cardConfigs.length) {
-        return deckConfig;
+      for (var j = 0; j < deckConfig.cardConfigs.length; j++) {
+        var cardConfigCount = deckConfig.cardConfigs[j].count || 1;
+        if (globalCardIndex < cardConfigCount) {
+          return deckConfig;
+        }
+        globalCardIndex -= cardConfigCount;
       }
-      index -= deckConfig.cardConfigs.length;
     }
     return null;
   }
 
-  function getCardConfigFromGlobalCardIndex(index) {
+  function getCardConfigFromGlobalCardIndex(globalCardIndex) {
     for (var i = 0; i < deckConfigs.length; i++) {
       var deckConfig = deckConfigs[i];
-      if (index < deckConfig.cardConfigs.length) {
-        return deckConfig.cardConfigs[index];
+      for (var j = 0; j < deckConfig.cardConfigs.length; j++) {
+        var cardConfigCount = deckConfig.cardConfigs[j].count || 1;
+        if (globalCardIndex < cardConfigCount) {
+          return deckConfig.cardConfigs[j];
+        }
+        globalCardIndex -= cardConfigCount;
       }
-      index -= deckConfig.cardConfigs.length;
     }
     return null;
   }
 
-  var _numCards = 0;
   function getNumCards() {
-    if (_numCards == 0) {
-      var numCards = 0;
-      for (var i = 0; i < deckConfigs.length; i++) {
-        numCards += deckConfigs[i].cardConfigs.length;
+    var numCards = 0;
+    for (var i = 0; i < deckConfigs.length; i++) {
+      for (var j = 0; j < deckConfigs[i].cardConfigs.length; j++) {
+        var cardConfigCount = deckConfigs[i].cardConfigs[j].count || 1;
+        numCards += cardConfigCount;
       }
-      _numCards = numCards;
     }
-    debugLog.debugLog("Cards", "getNumCards: _numCards = " + _numCards);
-    return _numCards;
+    return numCards;
   }
 
-  function getCardIndexInDeckFromGlobalCardIndex(index) {
+  function getCardIndexInDeckFromGlobalCardIndex(globalCardIndex) {
+    var indexThisDeck = globalCardIndex;
     for (var i = 0; i < deckConfigs.length; i++) {
-      var deckConfig = deckConfigs[i];
-      if (index < deckConfig.cardConfigs.length) {
-        debugLog.debugLog(
-          "Cards",
-          "getCardIndexInDeckFromGlobalCardIndex: returning = " + index
-        );
-        return index;
+      var cardsInDeck = 0;
+      for (var j = 0; j < deckConfigs[i].cardConfigs.length; j++) {
+        var cardConfigCount = deckConfigs[i].cardConfigs[j].count || 1;
+        cardsInDeck += cardConfigCount;
       }
-      index -= deckConfig.cardConfigs.length;
+
+      if (indexThisDeck < cardsInDeck) {
+        return indexThisDeck;
+      }
+      indexThisDeck -= cardsInDeck;
     }
-    debugLog.debugLog(
-      "Cards",
-      "getCardIndexInDeckFromGlobalCardIndex: returning null"
-    );
     return null;
   }
 
-  function getDeckIndexFromGlobalCardIndex(index) {
+  function getDeckIndexFromGlobalCardIndex(globalCardIndex) {
+    var indexThisDeck = globalCardIndex;
     for (var i = 0; i < deckConfigs.length; i++) {
-      var deckConfig = deckConfigs[i];
-      if (index < deckConfig.cardConfigs.length) {
-        debugLog.debugLog(
-          "Cards",
-          "getCardIndexInDeckFromGlobalCardIndex: returning = " + i
-        );
+      var cardsInDeck = 0;
+      for (var j = 0; j < deckConfigs[i].cardConfigs.length; j++) {
+        var cardConfigCount = deckConfigs[i].cardConfigs[j].count || 1;
+        cardsInDeck += cardConfigCount;
+      }
+
+      if (indexThisDeck < cardsInDeck) {
         return i;
       }
-      index -= deckConfig.cardConfigs.length;
+      indexThisDeck -= cardsInDeck;
     }
-    debugLog.debugLog(
-      "Cards",
-      "getDeckIndexFromGlobalCardIndex: returning null"
-    );
     return null;
   }
 
@@ -364,6 +367,7 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
     bodyPartTypes: bodyPartTypes,
     bodyPartSides: bodyPartSides,
     joinTypes: joinTypes,
+    costTypes: costTypes,
 
     getDeckConfigFromGlobalCardIndex: getDeckConfigFromGlobalCardIndex,
     getCardConfigFromGlobalCardIndex: getCardConfigFromGlobalCardIndex,
