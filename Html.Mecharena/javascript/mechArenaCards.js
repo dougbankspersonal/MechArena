@@ -35,10 +35,7 @@ define([
     return imageNode;
   }
 
-  function maybeAddJoinNode(parent, joinType, needAJoin) {
-    if (!needAJoin) {
-      return null;
-    }
+  function addJoinNode(parent, joinType) {
     var joinText;
     if (joinType == mechArenaCardData.joinTypes.And) {
       joinText = "+";
@@ -56,6 +53,30 @@ define([
     return joinNode;
   }
 
+  function insertExpendablesNodes(parentNode, expendablesArray, opt_joinType) {
+    debugLog.debugLog(
+      "Cards",
+      "insertExpendablesNodes expendablesArray = " +
+        JSON.stringify(expendablesArray)
+    );
+    var joinType = opt_joinType || mechArenaCardData.joinTypes.And;
+    for (var i = 0; i < expendablesArray.length; i++) {
+      if (i > 0) {
+        addJoinNode(parentNode, joinType);
+      }
+
+      var expendableConfig = expendablesArray[i];
+      var count = expendableConfig.count || 1;
+      for (var j = 0; j < count; j++) {
+        var expendableImageNode = htmlUtils.addImage(
+          parentNode,
+          ["expendable", expendableConfig.type],
+          "expendable-" + expendableConfig.type
+        );
+      }
+    }
+  }
+
   function addBodyPartNode(parentNode, cardConfig) {
     var bodyPartWrapperNode = htmlUtils.addDiv(
       parentNode,
@@ -64,6 +85,10 @@ define([
     );
 
     for (var i = 0; i < cardConfig.bodyParts.length; i++) {
+      if (i > 0) {
+        addJoinNode(bodyPartWrapperNode, cardConfig.bodyPartsJoinType);
+      }
+
       var bodyPartConfig = cardConfig.bodyParts[i];
       var bodyPartImageNode = htmlUtils.addImage(
         bodyPartWrapperNode,
@@ -80,12 +105,6 @@ define([
             : "R"
         );
       }
-
-      maybeAddJoinNode(
-        bodyPartWrapperNode,
-        cardConfig.bodyPartsJoinType,
-        i < cardConfig.bodyParts.length - 1
-      );
     }
 
     var number = cardConfig.bodyPartNumber
@@ -102,8 +121,8 @@ define([
     return bodyPartWrapperNode;
   }
 
-  function maybeAddCountNode(parentNode, opt_count) {
-    console.log("maybeAddCountNode", opt_count);
+  function addCountNode(parentNode, opt_count) {
+    console.log("addCountNode", opt_count);
     if (opt_count === undefined || opt_count === null || opt_count <= 0) {
       return null;
     }
@@ -127,37 +146,118 @@ define([
     return titleNode;
   }
 
-  function maybeAddCostNode(parentNode, cardConfig) {
-    console.log("maybeAddCostNode", cardConfig);
-    var cost = cardConfig.cost || [];
-
-    if (cost.length === 0) {
-      console.log("maybeAddCostNode early return, no cost");
+  function addExpendablesNode(parentNode, cardConfig) {
+    var expendabes = cardConfig.expendabes || [];
+    if (expendabes.length === 0) {
       return null;
     }
 
-    console.log("maybeAddCostNode adding child");
-    var costWrapperNode = htmlUtils.addDiv(
+    console.log("addExpendablesNode adding child");
+    var expendableWrapperNode = htmlUtils.addDiv(
       parentNode,
-      ["cost_wrapper"],
-      "cost_wrapper"
+      ["expendable-wrapper"],
+      "expendable-wrapper"
     );
 
-    for (var i = 0; i < cost.length; i++) {
-      var costConfig = cost[i];
-      var costImageNode = htmlUtils.addImage(
-        costWrapperNode,
-        ["cost", costConfig.type],
-        "cost-" + costConfig.type
-      );
-      maybeAddCountNode(costImageNode, costConfig.count);
+    insertExpendablesNodes(
+      expendableWrapperNode,
+      expendabes,
+      cardConfig.expendableJoinType
+    );
+  }
 
-      maybeAddJoinNode(
-        costWrapperNode,
-        cardConfig.costJoinType,
-        i < cost.length - 1
+  function addDetailsSectionNode(parentNode, sectionClass, sectionId) {
+    return htmlUtils.addDiv(
+      parentNode,
+      ["details-section", sectionClass],
+      sectionId
+    );
+  }
+
+  function addAttackModNode(attackModsNode, attackMod) {
+    debugLog.debugLog(
+      "Cards",
+      "addAttackModNode attackMod = " + JSON.stringify(attackMod)
+    );
+    // Making some assumptions for now, could break later (e.g. that we never go up or down more than one die).
+    if (attackMod.type === mechArenaCardData.attackModTypes.DieUp) {
+      var attackModImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "die-up"],
+        "attack-mod-die-up"
       );
+    } else if (attackMod.type === mechArenaCardData.attackModTypes.DieDown) {
+      var attackModImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "die-down"],
+        "attack-mod-die-down"
+      );
+    } else if (attackMod.type === mechArenaCardData.attackModTypes.Forbidden) {
+      var attackModImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "forbidden"],
+        "attack-mod-forbidden"
+      );
+    } else if (attackMod.type === mechArenaCardData.attackModTypes.Reload) {
+      // What expendables are being reloaded?
+      var reloadImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "reload"],
+        "attack-mod-reload"
+      );
+      // We have to say what we're reloading, how much, etc.
+      insertExpendablesNodes(attackModsNode, attackMod.expendables);
+    } else if (attackMod.type === mechArenaCardData.attackModTypes.EvadeMelee) {
+      // <Not sure what this means>>
+      var evadeMeleeImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "evade-melee"],
+        "attack-mod-reload"
+      );
+      addCountNode(attackModsNode, attackMod.count);
+    } else if (
+      attackMod.type === mechArenaCardData.attackModTypes.DestroyLocation
+    ) {
+      var destroyLocationImageNode = htmlUtils.addImage(
+        attackModsNode,
+        ["attack-mod", "destroy-location"],
+        "attack-mod-reload"
+      );
+    } else {
+      debugLog.logError("Unknown attack mod type: ", attackModConfig.type);
+      return null;
     }
+  }
+
+  function addAttackModsSection(
+    parentNode,
+    sectionClass,
+    sectionId,
+    opt_attackModsArray,
+    opt_joinType
+  ) {
+    var attackModsArray = opt_attackModsArray || [];
+    var joinType = opt_joinType || mechArenaCardData.joinTypes.And;
+
+    if (attackModsArray.length === 0) {
+      return null;
+    }
+
+    var attackModsNode = addDetailsSectionNode(
+      parentNode,
+      sectionClass,
+      sectionId
+    );
+
+    for (var i = 0; i < attackModsArray.length; i++) {
+      if (i > 0) {
+        addJoinNode(attackModsNode, joinType);
+      }
+
+      var attackMod = attackModsArray[i];
+      addAttackModNode(attackModsNode, attackMod);
+    }
+    return attackModsNode;
   }
 
   function addMovementPropertyNode(parentNode, cardConfig) {
@@ -165,24 +265,22 @@ define([
       return null;
     }
 
-    var movementNode = htmlUtils.addDiv(
+    var movementNode = addDetailsSectionNode(
       parentNode,
-      ["details-section", "movement"],
+      "movement",
       "movement"
     );
 
     for (var i = 0; i < cardConfig.movements.length; i++) {
+      if (i > 0) {
+        addJoinNode(movementNode, cardConfig.movementsJoinType);
+      }
+
       var movementConfig = cardConfig.movements[i];
       var movementImageNode = htmlUtils.addImage(
         movementNode,
         ["movement-image", movementConfig.type],
         "movement-image-" + movementConfig.type
-      );
-
-      maybeAddJoinNode(
-        movementNode,
-        cardConfig.movementsJoinType,
-        i < cardConfig.movements.length - 1
       );
     }
 
@@ -190,6 +288,19 @@ define([
   }
 
   function addDiscardEffectNode(parentNode, discardEffectConfig) {
+    debugLog.debugLog(
+      "Cards",
+      "addDiscardEffectNode = " + JSON.stringify(discardEffectConfig)
+    );
+
+    if (
+      discardEffectConfig == undefined ||
+      discardEffectConfig == null ||
+      discardEffectConfig.length == 0
+    ) {
+      return null;
+    }
+
     var discardEffectWrapperNode = htmlUtils.addDiv(
       parentNode,
       ["discard-effect-wrapper"],
@@ -207,13 +318,28 @@ define([
       ":"
     );
 
-    var discardEffectImageNode = htmlUtils.addImage(
-      discardEffectWrapperNode,
-      ["discard-effect", discardEffectConfig.type],
-      "discard-effect"
-    );
+    if (
+      discardEffectConfig.type ==
+      mechArenaCardData.discardEffectTypes.GetExpendables
+    ) {
+      var reloadImageNode = htmlUtils.addImage(
+        discardEffectWrapperNode,
+        ["discard-effect", "reload"],
+        "discard-effect-reload"
+      );
+      insertExpendablesNodes(
+        discardEffectWrapperNode,
+        discardEffectConfig.expendables
+      );
+    } else {
+      var discardEffectImageNode = htmlUtils.addImage(
+        discardEffectWrapperNode,
+        ["discard-effect", discardEffectConfig.type],
+        "discard-effect"
+      );
+    }
 
-    maybeAddCountNode(discardEffectImageNode, discardEffectConfig.count);
+    addCountNode(discardEffectImageNode, discardEffectConfig.count);
 
     return discardEffectWrapperNode;
   }
@@ -239,6 +365,8 @@ define([
 
     addInitiativeNode(cardFrontNode, cardConfig);
     addBodyPartNode(cardFrontNode, cardConfig);
+    addDiscardEffectNode(cardFrontNode, cardConfig.discardEffect);
+    addExpendablesNode(cardFrontNode, cardConfig);
 
     var frontWrapperNode = htmlUtils.addDiv(
       cardFrontNode,
@@ -246,14 +374,33 @@ define([
       "front-wrapper"
     );
 
-    addTitleNode(frontWrapperNode, cardConfig);
-    maybeAddCostNode(frontWrapperNode, cardConfig);
+    var titleNode = addTitleNode(frontWrapperNode, cardConfig);
 
     addMovementPropertyNode(frontWrapperNode, cardConfig);
-
-    if (cardConfig.discardEffect) {
-      addDiscardEffectNode(cardFrontNode, cardConfig.discardEffect);
-    }
+    addAttackModsSection(
+      frontWrapperNode,
+      "outgoing-melee-attack-mods",
+      "outgoing-melee-attack-mods",
+      cardConfig.outgoingMeleeAttackMods
+    );
+    addAttackModsSection(
+      frontWrapperNode,
+      "outgoing-ranged-attack-mods",
+      "outgoing-ranged-attack-mods",
+      cardConfig.outgoingRangedAttackMods
+    );
+    addAttackModsSection(
+      frontWrapperNode,
+      "incoming-melee-attack-mods",
+      "incoming-melee-attack-mods",
+      cardConfig.incomingMeleeAttackMods
+    );
+    addAttackModsSection(
+      frontWrapperNode,
+      "incoming-ranged-attack-mods",
+      "incoming-ranged-attack-mods",
+      cardConfig.incomingRangedAttackMods
+    );
   }
 
   function addBackForDeck(parent, deckConfig) {

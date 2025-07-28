@@ -12,12 +12,11 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   const CardType_System = "system";
 
   const DiscardEffectType_Reposition = "reposition";
-  const DiscardEffectType_Ammo = "ammo";
-  const DiscardEffectType_Energy = "energy";
+  const DiscardEffectType_GetExpendables = "get-expendables";
   const DiscardEffectType_BattleRetreat = "battle-retreat";
 
-  const CostType_Energy = "energy";
-  const CostType_Ammo = "ammo";
+  const ExpendableType_Energy = "energy";
+  const ExpendableType_Ammo = "ammo";
 
   const BodyPartType_Rotor = "rotor";
   const BodyPartType_Head = "head";
@@ -39,6 +38,22 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
   const MovementType_Side = "side";
   const MovementType_BattleRetreat = "battle-retreat";
 
+  const AttackMod_DieUp = "die-up";
+  const AttackMod_DieDown = "die-down";
+  const AttackMod_Reload = "reload";
+  const AttackMod_EvadeMelee = "evade-melee";
+  const AttackMod_DestroyLocation = "destroy-location";
+  const AttackMod_Forbidden = "forbidden";
+
+  const attackModTypes = {
+    DieUp: AttackMod_DieUp,
+    DieDown: AttackMod_DieDown,
+    Reload: AttackMod_Reload,
+    EvadeMelee: AttackMod_EvadeMelee,
+    DestroyLocation: AttackMod_DestroyLocation,
+    Forbidden: AttackMod_Forbidden,
+  };
+
   const cardTypes = {
     Movement: CardType_Movement,
     Attack: CardType_Attack,
@@ -47,8 +62,7 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
 
   const discardEffectTypes = {
     Reposition: DiscardEffectType_Reposition,
-    Ammo: DiscardEffectType_Ammo,
-    Energy: DiscardEffectType_Energy,
+    GetExpendables: DiscardEffectType_GetExpendables,
     BattleRetreat: DiscardEffectType_BattleRetreat,
   };
 
@@ -80,9 +94,9 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
     BattleRetreat: MovementType_BattleRetreat,
   };
 
-  const costTypes = {
-    Energy: CostType_Energy,
-    Ammo: CostType_Ammo,
+  const expendableTypes = {
+    Energy: ExpendableType_Energy,
+    Ammo: ExpendableType_Ammo,
   };
 
   var nextDeckId = 0;
@@ -111,6 +125,10 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           { type: movementTypes.Melee },
           { type: movementTypes.Short },
         ],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.DieDown }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.DieUp }],
+        incomingRangedAttackMods: [{ type: attackModTypes.DieUp }],
         movementsJoinType: joinTypes.Or,
       },
       {
@@ -121,6 +139,9 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           type: discardEffectTypes.Reposition,
         },
         bodyParts: [{ type: bodyPartTypes.Head }],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.DieDown }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
       },
       {
         title: "Pulse Laser",
@@ -130,23 +151,22 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           type: discardEffectTypes.Reposition,
         },
         bodyParts: [{ type: bodyPartTypes.Weapon }],
-        cost: [{ type: costTypes.Energy, count: 1 }],
+        expendabes: [{ type: expendableTypes.Energy, count: 1 }],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
       },
       {
         title: "Rocket Pod",
         type: cardTypes.Attack,
         initiative: 2,
         bodyParts: [{ type: bodyPartTypes.Weapon }],
-        cost: [{ type: costTypes.Energy, count: 1 }],
-      },
-      {
-        title: "Flanking Turn",
-        type: cardTypes.Movement,
-        initiative: 3,
         discardEffect: {
           type: discardEffectTypes.Reposition,
         },
         bodyParts: [{ type: bodyPartTypes.Rotor, side: bodyPartSides.Right }],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingRangedAttackMods: [{ type: attackModTypes.DieUp }],
       },
       {
         title: "Reposition",
@@ -162,6 +182,8 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           { type: movementTypes.Long },
         ],
         movementsJoinType: joinTypes.Toggle,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
       },
       {
         title: "Disengage",
@@ -173,6 +195,10 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           { type: movementTypes.BattleRetreat },
         ],
         movementsJoinType: joinTypes.Or,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingRangedAttackMods: [{ type: attackModTypes.DieUp }],
       },
     ],
   };
@@ -191,41 +217,58 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         type: cardTypes.System,
         initiative: 1,
         discardEffect: {
-          type: discardEffectTypes.Ammo,
-          count: 1,
+          type: discardEffectTypes.GetExpendables,
+          expendables: [{ type: expendableTypes.Ammo }],
         },
         bodyParts: [{ type: bodyPartTypes.Turret }],
         bodyPartNumber: 1,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.DieDown }],
       },
+
       {
         title: "Recharge",
         count: 2,
         type: cardTypes.System,
         initiative: 2,
         discardEffect: {
-          type: discardEffectTypes.Ammo,
-          count: 1,
+          type: discardEffectTypes.GetExpendables,
+          expendables: [{ type: expendableTypes.Ammo }],
         },
         bodyParts: [{ type: bodyPartTypes.Core }],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [
+          {
+            type: attackModTypes.Reload,
+            expendables: [{ type: expendableTypes.Energy, count: 2 }],
+          },
+        ],
       },
       {
         title: "Reload",
         type: cardTypes.System,
         initiative: 2,
         discardEffect: {
-          type: discardEffectTypes.Energy,
-          count: 1,
+          type: discardEffectTypes.GetExpendables,
+          expendables: [{ type: expendableTypes.Energy }],
         },
         bodyParts: [{ type: bodyPartTypes.Turret }],
         bodyPartNumber: 1,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [
+          {
+            type: attackModTypes.Reload,
+            expendables: [{ type: expendableTypes.Ammo }],
+          },
+        ],
       },
       {
         title: "Rapid Turn",
         type: cardTypes.Movement,
         initiative: 3,
         discardEffect: {
-          type: discardEffectTypes.Energy,
-          count: 1,
+          type: discardEffectTypes.GetExpendables,
+          expendables: [{ type: expendableTypes.Energy }],
         },
         bodyParts: [{ type: bodyPartTypes.Track, side: bodyPartSides.Right }],
         bodyPartNumber: 5,
@@ -234,6 +277,10 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           { type: movementTypes.Long },
         ],
         movementsJoinType: joinTypes.Or,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.EvadeMelee }],
+        incomingRangedAttackMods: [{ type: attackModTypes.DieUp }],
       },
       {
         title: "Reposition",
@@ -241,8 +288,8 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         type: cardTypes.Movement,
         initiative: 5,
         discardEffect: {
-          type: discardEffectTypes.Energy,
-          count: 1,
+          type: discardEffectTypes.GetExpendables,
+          expendables: [{ type: expendableTypes.Energy }],
         },
         bodyParts: [{ type: bodyPartTypes.Track, side: bodyPartSides.Right }],
         movements: [
@@ -250,6 +297,10 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
           { type: movementTypes.Long },
         ],
         movementsJoinType: joinTypes.Toggle,
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [
+          { type: attackModTypes.EvadeMelee, count: 5 },
+        ],
       },
       {
         title: "Retreat to Long",
@@ -260,6 +311,12 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         },
         bodyParts: [{ type: bodyPartTypes.Track, side: bodyPartSides.Left }],
         movements: [{ type: movementTypes.Long }],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        outgoingRangedAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [
+          { type: attackModTypes.EvadeMelee, count: 5 },
+        ],
+        incomingRangedAttackMods: [{ type: attackModTypes.DieUp }],
       },
       {
         title: "Fire Railgun",
@@ -271,10 +328,12 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
         },
         bodyParts: [{ type: bodyPartTypes.Turret }],
         bodyPartNumber: 1,
-        cost: [
-          { type: costTypes.Energy, count: 2 },
-          { type: costTypes.Ammo, count: 1 },
+        expendabes: [
+          { type: expendableTypes.Energy, count: 2 },
+          { type: expendableTypes.Ammo, count: 1 },
         ],
+        outgoingMeleeAttackMods: [{ type: attackModTypes.Forbidden }],
+        incomingMeleeAttackMods: [{ type: attackModTypes.DestroyLocation }],
       },
     ],
   };
@@ -367,7 +426,8 @@ define(["sharedJavascript/debugLog", "dojo/domReady!"], function (debugLog) {
     bodyPartTypes: bodyPartTypes,
     bodyPartSides: bodyPartSides,
     joinTypes: joinTypes,
-    costTypes: costTypes,
+    expendableTypes: expendableTypes,
+    attackModTypes: attackModTypes,
 
     getDeckConfigFromGlobalCardIndex: getDeckConfigFromGlobalCardIndex,
     getCardConfigFromGlobalCardIndex: getCardConfigFromGlobalCardIndex,

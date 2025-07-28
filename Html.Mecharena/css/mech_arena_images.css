@@ -1,33 +1,5 @@
-div.pseudo_image.attack-drone {
-  background-image: url("../images/MechArenaCards/attack-drone.png");
-}
-
-div.pseudo_image.railgun-tank {
-  background-image: url("../images/MechArenaCards/railgun-tank.png");
-}
-
 div.pseudo_image.initiative {
   background-image: url("../images/MechArenaCards/initiative.png");
-}
-
-div.pseudo_image.discard {
-  background-image: url("../images/MechArenaCards/discard.png");
-}
-
-div.pseudo_image.ammo {
-  background-image: url("../images/MechArenaCards/shared/ammo.png");
-}
-
-div.pseudo_image.energy {
-  background-image: url("../images/MechArenaCards/shared/energy.png");
-}
-
-div.pseudo_image.reposition {
-  background-image: url("../images/MechArenaCards/discard-effect/reposition.png");
-}
-
-div.pseudo_image.battle-retreat {
-  background-image: url("../images/MechArenaCards/shared/battle-retreat.png");
 }
 
 div.pseudo_image.rotor {
@@ -68,6 +40,58 @@ div.pseudo_image.long {
 
 div.pseudo_image.side {
   background-image: url("../images/MechArenaCards/distance/side.png");
+}
+
+div.pseudo_image.attack-drone {
+  background-image: url("../images/MechArenaCards/mechs/attack-drone.png");
+}
+
+div.pseudo_image.railgun-tank {
+  background-image: url("../images/MechArenaCards/mechs/railgun-tank.png");
+}
+
+div.pseudo_image.discard {
+  background-image: url("../images/MechArenaCards/discard/discard.png");
+}
+
+div.pseudo_image.reposition {
+  background-image: url("../images/MechArenaCards/discard/reposition.png");
+}
+
+div.pseudo_image.battle-retreat {
+  background-image: url("../images/MechArenaCards/discard/battle-retreat.png");
+}
+
+div.pseudo_image.reload {
+  background-image: url("../images/MechArenaCards/shared/reload.png");
+}
+
+div.pseudo_image.ammo {
+  background-image: url("../images/MechArenaCards/shared/ammo.png");
+}
+
+div.pseudo_image.energy {
+  background-image: url("../images/MechArenaCards/shared/energy.png");
+}
+
+div.pseudo_image.forbidden {
+  background-image: url("../images/MechArenaCards/mods/forbidden.png");
+}
+
+div.pseudo_image.destroy-location {
+  background-image: url("../images/MechArenaCards/mods/destroy-location.png");
+}
+
+div.pseudo_image.die-down {
+  background-image: url("../images/MechArenaCards/mods/die-down.png");
+}
+
+div.pseudo_image.die-up {
+  background-image: url("../images/MechArenaCards/mods/die-up.png");
+}
+
+div.pseudo_image.evade-melee {
+  background-image: url("../images/MechArenaCards/mods/evade-melee.png");
 }
 
 /*# sourceMappingURL=mech_arena_images.css.map */
